@@ -1,5 +1,8 @@
 import { createBrowserRouter, Navigate } from "react-router-dom"
 import { RootLayout } from "@/components/layout/root-layout"
+import { AppLayout } from "@/components/layout/app-layout"
+import { ProtectedRoute } from "@/components/auth/protected-route"
+import { TeamLeadOrAdminGuard, AdminGuard } from "@/components/auth/role-guard"
 import { LandingPage } from "@/pages/landing"
 import { LoginPage } from "@/pages/login"
 import { RegisterPage } from "@/pages/register"
@@ -24,6 +27,11 @@ export const router = createBrowserRouter([
       },
       {
         path: "app",
+        element: (
+          <ProtectedRoute>
+            <AppLayout />
+          </ProtectedRoute>
+        ),
         children: [
           {
             index: true,
@@ -31,23 +39,44 @@ export const router = createBrowserRouter([
           },
           {
             path: "reservations",
-            element: <div className="p-6"><h1 className="text-2xl font-bold">Reservations (Coming Soon)</h1></div>,
+            element: <div className="space-y-6"><h1 className="text-3xl font-bold">My Reservations</h1><p className="text-muted-foreground">Manage your desk reservations here.</p></div>,
           },
           {
             path: "desks",
-            element: <div className="p-6"><h1 className="text-2xl font-bold">Desks (Coming Soon)</h1></div>,
+            element: <div className="space-y-6"><h1 className="text-3xl font-bold">Available Desks</h1><p className="text-muted-foreground">Browse and book available desks.</p></div>,
           },
           {
             path: "floors",
-            element: <div className="p-6"><h1 className="text-2xl font-bold">Floors (Coming Soon)</h1></div>,
+            element: (
+              <TeamLeadOrAdminGuard>
+                <div className="space-y-6">
+                  <h1 className="text-3xl font-bold">Floor Management</h1>
+                  <p className="text-muted-foreground">Manage office floors and layouts.</p>
+                </div>
+              </TeamLeadOrAdminGuard>
+            ),
           },
           {
             path: "users",
-            element: <div className="p-6"><h1 className="text-2xl font-bold">Users (Coming Soon)</h1></div>,
+            element: (
+              <TeamLeadOrAdminGuard>
+                <div className="space-y-6">
+                  <h1 className="text-3xl font-bold">User Management</h1>
+                  <p className="text-muted-foreground">Manage user accounts and permissions.</p>
+                </div>
+              </TeamLeadOrAdminGuard>
+            ),
           },
           {
             path: "roles",
-            element: <div className="p-6"><h1 className="text-2xl font-bold">Roles (Coming Soon)</h1></div>,
+            element: (
+              <AdminGuard>
+                <div className="space-y-6">
+                  <h1 className="text-3xl font-bold">Role Management</h1>
+                  <p className="text-muted-foreground">Manage user roles and permissions.</p>
+                </div>
+              </AdminGuard>
+            ),
           },
         ],
       },

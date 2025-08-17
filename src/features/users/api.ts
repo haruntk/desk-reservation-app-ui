@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api'
-import { UserDTO } from '@/types/auth'
+
+import type { UserDTO } from '@/types/auth'
 
 // API endpoints
 const USER_ENDPOINTS = {

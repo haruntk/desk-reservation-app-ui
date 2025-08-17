@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api'
-import { 
+
+import type { 
   ReservationResponseDTO,
   CreateReservationRequestDTO,
   UpdateReservationRequestDTO,

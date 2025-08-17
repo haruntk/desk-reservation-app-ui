@@ -1,9 +1,18 @@
-import axios, { AxiosError, AxiosResponse } from 'axios'
+import axios from 'axios'
+
+import type { AxiosError, AxiosResponse } from 'axios'
 
 // API Error types
 export interface ApiError {
   message: string
   status: number
+  code?: string
+}
+
+// Backend error response structure
+interface BackendErrorResponse {
+  error?: string
+  message?: string
   code?: string
 }
 
@@ -61,7 +70,7 @@ apiClient.interceptors.response.use(
 // Error normalization function
 export function normalizeError(error: unknown): ApiError {
   if (axios.isAxiosError(error)) {
-    const axiosError = error as AxiosError<unknown>
+    const axiosError = error as AxiosError<BackendErrorResponse>
     
     if (axiosError.response) {
       // Server responded with error status
@@ -88,9 +97,17 @@ export function normalizeError(error: unknown): ApiError {
     }
   }
   
-  // Non-axios error
+  // Non-axios error - check if it has a message property
+  if (error && typeof error === 'object' && 'message' in error) {
+    return {
+      message: String(error.message) || 'An unexpected error occurred',
+      status: 0,
+      code: 'UNKNOWN_ERROR',
+    }
+  }
+  
   return {
-    message: error?.message || 'An unexpected error occurred',
+    message: 'An unexpected error occurred',
     status: 0,
     code: 'UNKNOWN_ERROR',
   }
