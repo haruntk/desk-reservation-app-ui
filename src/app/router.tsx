@@ -1,12 +1,22 @@
-import { createBrowserRouter, Navigate } from "react-router-dom"
+import { createBrowserRouter } from "react-router-dom"
 import { RootLayout } from "@/components/layout/root-layout"
 import { AppLayout } from "@/components/layout/app-layout"
 import { ProtectedRoute } from "@/components/auth/protected-route"
-import { TeamLeadOrAdminGuard, AdminGuard } from "@/components/auth/role-guard"
+import { AdminGuard } from "@/components/auth/role-guard"
 import { LandingPage } from "@/pages/landing"
 import { LoginPage } from "@/pages/login"
 import { RegisterPage } from "@/pages/register"
 import { DashboardPage } from "@/pages/dashboard"
+import { ReservationsPage } from "@/pages/reservations"
+import { DesksPage } from "@/pages/desks"
+import { FloorsPage } from "@/pages/floors"
+import { FloorDetailPage } from "@/pages/floor-detail"
+import { AdminDesksPage } from "@/pages/admin/desks"
+import { AdminFloorsPage } from "@/pages/admin/floors"
+import { AdminUsersPage } from "@/pages/admin/users"
+import { AdminRolesPage } from "@/pages/admin/roles"
+import { NotFoundPage } from "@/pages/errors/404"
+import { ForbiddenPage } from "@/pages/errors/403"
 
 export const router = createBrowserRouter([
   {
@@ -39,50 +49,67 @@ export const router = createBrowserRouter([
           },
           {
             path: "reservations",
-            element: <div className="space-y-6"><h1 className="text-3xl font-bold">My Reservations</h1><p className="text-muted-foreground">Manage your desk reservations here.</p></div>,
+            element: <ReservationsPage />,
           },
           {
             path: "desks",
-            element: <div className="space-y-6"><h1 className="text-3xl font-bold">Available Desks</h1><p className="text-muted-foreground">Browse and book available desks.</p></div>,
+            element: <DesksPage />,
           },
           {
             path: "floors",
-            element: (
-              <TeamLeadOrAdminGuard>
-                <div className="space-y-6">
-                  <h1 className="text-3xl font-bold">Floor Management</h1>
-                  <p className="text-muted-foreground">Manage office floors and layouts.</p>
-                </div>
-              </TeamLeadOrAdminGuard>
-            ),
+            element: <FloorsPage />,
           },
           {
-            path: "users",
-            element: (
-              <TeamLeadOrAdminGuard>
-                <div className="space-y-6">
-                  <h1 className="text-3xl font-bold">User Management</h1>
-                  <p className="text-muted-foreground">Manage user accounts and permissions.</p>
-                </div>
-              </TeamLeadOrAdminGuard>
-            ),
+            path: "floors/:floorId",
+            element: <FloorDetailPage />,
           },
+
           {
-            path: "roles",
-            element: (
-              <AdminGuard>
-                <div className="space-y-6">
-                  <h1 className="text-3xl font-bold">Role Management</h1>
-                  <p className="text-muted-foreground">Manage user roles and permissions.</p>
-                </div>
-              </AdminGuard>
-            ),
+            path: "admin",
+            children: [
+              {
+                path: "desks",
+                element: (
+                  <AdminGuard>
+                    <AdminDesksPage />
+                  </AdminGuard>
+                ),
+              },
+              {
+                path: "floors",
+                element: (
+                  <AdminGuard>
+                    <AdminFloorsPage />
+                  </AdminGuard>
+                ),
+              },
+              {
+                path: "users",
+                element: (
+                  <AdminGuard>
+                    <AdminUsersPage />
+                  </AdminGuard>
+                ),
+              },
+              {
+                path: "roles",
+                element: (
+                  <AdminGuard>
+                    <AdminRolesPage />
+                  </AdminGuard>
+                ),
+              },
+            ],
           },
         ],
       },
       {
+        path: "403",
+        element: <ForbiddenPage />,
+      },
+      {
         path: "*",
-        element: <Navigate to="/" replace />,
+        element: <NotFoundPage />,
       },
     ],
   },

@@ -1,11 +1,39 @@
 import { Link } from 'react-router-dom'
 import { Calendar, Monitor, Building2, BarChart3 } from 'lucide-react'
+import { format } from 'date-fns'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/features/auth/store'
+import { useMyReservationsQuery } from '@/features/reservations/api'
+import { useDesksQuery } from '@/features/desks/api'
+import { useFloorsQuery } from '@/features/floors/api'
 
 export function DashboardPage() {
   const { user } = useAuth()
+  
+  // Fetch data
+  const { data: reservations = [], isLoading: reservationsLoading } = useMyReservationsQuery()
+  const { data: desks = [], isLoading: desksLoading } = useDesksQuery()
+  const { data: floors = [], isLoading: floorsLoading } = useFloorsQuery()
+  
+  // Calculate stats
+  const activeReservations = reservations.filter(r => r.status === 'Active' || r.status === 'Scheduled')
+  const availableDesks = desks.filter(d => d.isAvailable).length
+  const recentReservations = reservations
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5)
+  
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case "Active": return "default"
+      case "Scheduled": return "secondary" 
+      case "Cancelled": return "destructive"
+      case "Completed": return "outline"
+      default: return "outline"
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -24,7 +52,11 @@ export function DashboardPage() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            {reservationsLoading ? (
+              <Skeleton className="h-8 w-12" />
+            ) : (
+              <div className="text-2xl font-bold">{activeReservations.length}</div>
+            )}
             <p className="text-xs text-muted-foreground">
               Active reservations
             </p>
@@ -40,7 +72,11 @@ export function DashboardPage() {
             <Monitor className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">--</div>
+            {desksLoading ? (
+              <Skeleton className="h-8 w-12" />
+            ) : (
+              <div className="text-2xl font-bold">{availableDesks}</div>
+            )}
             <p className="text-xs text-muted-foreground">
               Ready to book now
             </p>
@@ -56,7 +92,11 @@ export function DashboardPage() {
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">--</div>
+            {floorsLoading ? (
+              <Skeleton className="h-8 w-12" />
+            ) : (
+              <div className="text-2xl font-bold">{floors.length}</div>
+            )}
             <p className="text-xs text-muted-foreground">
               Total floors available
             </p>
@@ -76,11 +116,53 @@ export function DashboardPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No recent activity to display</p>
-            <p className="text-sm">Start by making your first desk reservation!</p>
-          </div>
+          {reservationsLoading ? (
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="flex items-center justify-between p-3 border rounded">
+                  <div className="space-y-1">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-32" />
+                  </div>
+                  <Skeleton className="h-6 w-16" />
+                </div>
+              ))}
+            </div>
+          ) : recentReservations.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No recent activity to display</p>
+              <p className="text-sm">Start by making your first desk reservation!</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {recentReservations.map((reservation) => (
+                <div key={reservation.reservationId} className="flex items-center justify-between p-3 border rounded hover:bg-accent/50 transition-colors">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{reservation.deskName}</span>
+                      <Badge variant={getStatusBadgeVariant(reservation.status)} className="text-xs">
+                        {reservation.status}
+                      </Badge>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {format(new Date(reservation.startTime), "MMM d, yyyy 'at' h:mm a")}
+                    </div>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Floor {reservation.floorNumber}
+                  </div>
+                </div>
+              ))}
+              {recentReservations.length > 0 && (
+                <div className="pt-2">
+                  <Button asChild variant="outline" size="sm" className="w-full">
+                    <Link to="/app/reservations">View All Reservations</Link>
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

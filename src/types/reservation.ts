@@ -1,5 +1,5 @@
 // Reservation status type
-export type ReservationStatus = 'Active' | 'Cancelled' | 'Completed'
+export type ReservationStatus = 'Active' | 'Scheduled' | 'Cancelled' | 'Completed'
 
 // Reservation DTOs
 export interface ReservationResponseDTO {
@@ -46,8 +46,11 @@ export interface ReservationDTO {
 }
 
 export interface UserReservationsResponseDTO {
-  reservations: ReservationResponseDTO[]
-  totalCount: number
+  userId: string
+  activeReservations: ReservationResponseDTO[]
+  upcomingReservations: ReservationResponseDTO[]
+  pastReservations: ReservationResponseDTO[]
+  totalReservations: number
 }
 
 // Reservation query filters

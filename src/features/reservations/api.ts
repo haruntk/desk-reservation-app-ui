@@ -6,7 +6,8 @@ import type {
   CreateReservationRequestDTO,
   UpdateReservationRequestDTO,
   UpdateReservationStatusRequestDTO,
-  ReservationFilters
+  ReservationFilters,
+  UserReservationsResponseDTO
 } from '@/types/reservation'
 
 // API endpoints
@@ -55,8 +56,14 @@ export const reservationsApi = {
 
   // Get current user's reservations
   getMyReservations: async (): Promise<ReservationResponseDTO[]> => {
-    const response = await apiClient.get<ReservationResponseDTO[]>(RESERVATION_ENDPOINTS.MY_RESERVATIONS)
-    return response.data
+    const response = await apiClient.get<UserReservationsResponseDTO>(RESERVATION_ENDPOINTS.MY_RESERVATIONS)
+    // Combine all reservation types into a single array
+    const allReservations = [
+      ...response.data.activeReservations,
+      ...response.data.upcomingReservations,
+      ...response.data.pastReservations,
+    ]
+    return allReservations
   },
 
   // Get reservations by desk ID
@@ -184,8 +191,47 @@ export const useCreateReservationMutation = () => {
 
   return useMutation({
     mutationFn: reservationsApi.create,
+    onMutate: async (newReservation) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: reservationKeys.my() })
+
+      // Snapshot previous value
+      const previousReservations = queryClient.getQueryData<ReservationResponseDTO[]>(reservationKeys.my())
+
+      // Optimistically update to the new value
+      if (previousReservations) {
+        const optimisticReservation: ReservationResponseDTO = {
+          reservationId: Date.now(), // Temporary ID
+          userId: 'current-user', // This should come from auth context
+          deskId: newReservation.deskId,
+          deskName: 'Loading...', // Will be updated after success
+          floorNumber: 0, // Will be updated after success
+          startTime: newReservation.startTime,
+          endTime: newReservation.endTime,
+          status: 'Active',
+          createdAt: new Date().toISOString(),
+          duration: 'Calculating...',
+          isActive: false,
+          isPast: false,
+          isUpcoming: true,
+        }
+
+        queryClient.setQueryData<ReservationResponseDTO[]>(
+          reservationKeys.my(),
+          [...previousReservations, optimisticReservation]
+        )
+      }
+
+      return { previousReservations }
+    },
+    onError: (_, __, context) => {
+      // Rollback on error
+      if (context?.previousReservations) {
+        queryClient.setQueryData(reservationKeys.my(), context.previousReservations)
+      }
+    },
     onSuccess: () => {
-      // Invalidate and refetch reservation queries
+      // Invalidate and refetch reservation queries to get accurate data
       queryClient.invalidateQueries({ queryKey: reservationKeys.all })
     },
   })
@@ -227,8 +273,37 @@ export const useCancelReservationMutation = () => {
 
   return useMutation({
     mutationFn: reservationsApi.cancel,
+    onMutate: async (reservationId) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: reservationKeys.my() })
+
+      // Snapshot previous value
+      const previousReservations = queryClient.getQueryData<ReservationResponseDTO[]>(reservationKeys.my())
+
+      // Optimistically update to cancelled status
+      if (previousReservations) {
+        const updatedReservations = previousReservations.map(reservation =>
+          reservation.reservationId === reservationId
+            ? { ...reservation, status: 'Cancelled' as const }
+            : reservation
+        )
+
+        queryClient.setQueryData<ReservationResponseDTO[]>(
+          reservationKeys.my(),
+          updatedReservations
+        )
+      }
+
+      return { previousReservations }
+    },
+    onError: (_, __, context) => {
+      // Rollback on error
+      if (context?.previousReservations) {
+        queryClient.setQueryData(reservationKeys.my(), context.previousReservations)
+      }
+    },
     onSuccess: (_, id) => {
-      // Invalidate specific reservation and lists
+      // Invalidate specific reservation and lists to get accurate data
       queryClient.invalidateQueries({ queryKey: reservationKeys.detail(id) })
       queryClient.invalidateQueries({ queryKey: reservationKeys.lists() })
     },

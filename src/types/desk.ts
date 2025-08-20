@@ -19,8 +19,8 @@ export interface UpdateDeskRequestDTO {
 }
 
 export interface DeskAvailabilityRequestDTO {
-  startTime: string
-  endTime: string
+  StartTime: string
+  EndTime: string
 }
 
 // Additional desk types

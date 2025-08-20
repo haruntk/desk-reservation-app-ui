@@ -47,13 +47,13 @@ export const updateDeskRequestSchema = z.object({
 })
 
 export const deskAvailabilityRequestSchema = z.object({
-  startTime: z.string().datetime('Invalid start time format'),
-  endTime: z.string().datetime('Invalid end time format'),
+  StartTime: z.string().datetime('Invalid start time format'),
+  EndTime: z.string().datetime('Invalid end time format'),
 }).refine(
-  (data) => new Date(data.startTime) < new Date(data.endTime),
+  (data) => new Date(data.StartTime) < new Date(data.EndTime),
   {
     message: 'End time must be after start time',
-    path: ['endTime'],
+    path: ['EndTime'],
   }
 )
 
@@ -67,7 +67,7 @@ export const deskResponseSchema = z.object({
 })
 
 // Reservation Schemas
-export const reservationStatusSchema = z.enum(['Active', 'Cancelled', 'Completed'])
+export const reservationStatusSchema = z.enum(['Active', 'Scheduled', 'Cancelled', 'Completed'])
 
 export const createReservationRequestSchema = z.object({
   deskId: z.number()

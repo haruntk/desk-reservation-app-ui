@@ -7,9 +7,13 @@ import { Slot } from "@radix-ui/react-slot"
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
 
-const Form = ({ children, ...props }: React.FormHTMLAttributes<HTMLFormElement>) => {
-  return <form {...props}>{children}</form>
-}
+const Form = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ children, ...props }, ref) => {
+  return <div ref={ref} {...props}>{children}</div>
+})
+Form.displayName = "Form"
 
 type FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,

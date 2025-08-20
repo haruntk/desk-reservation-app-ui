@@ -5,6 +5,15 @@ import { Sidebar } from './sidebar'
 export function AppLayout() {
   return (
     <div className="flex h-screen bg-background">
+      {/* Skip navigation link for screen readers */}
+      <a 
+        href="#main-content" 
+        className="skip-link"
+        aria-label="Skip to main content"
+      >
+        Skip to main content
+      </a>
+      
       {/* Sidebar */}
       <Sidebar />
       
@@ -14,7 +23,12 @@ export function AppLayout() {
         <TopBar />
         
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto bg-background p-6">
+        <main 
+          id="main-content"
+          className="flex-1 overflow-y-auto bg-background p-6"
+          tabIndex={-1}
+          aria-label="Main content"
+        >
           <Outlet />
         </main>
       </div>

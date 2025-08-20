@@ -8,7 +8,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 
 import { registerRequestSchema } from '@/lib/schemas'
 import { useRegisterMutation } from '@/features/auth'
@@ -53,7 +53,7 @@ export function RegisterPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
+          <div>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
@@ -116,7 +116,7 @@ export function RegisterPage() {
                 {registerMutation.isPending ? 'Creating account...' : 'Create account'}
               </Button>
             </form>
-          </Form>
+          </div>
 
           <div className="mt-6 text-center text-sm">
             <span className="text-muted-foreground">

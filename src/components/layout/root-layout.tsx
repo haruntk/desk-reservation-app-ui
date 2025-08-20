@@ -1,9 +1,11 @@
 import { Outlet, Link, useLocation } from "react-router-dom"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
+import { useAuth } from "@/features/auth/store"
 
 export function RootLayout() {
   const location = useLocation()
+  const { user } = useAuth()
   const isAuthPage = ['/login', '/register'].includes(location.pathname)
 
   if (isAuthPage) {
@@ -35,9 +37,15 @@ export function RootLayout() {
               </Button>
             </nav>
             <ThemeToggle />
-            <Button asChild variant="outline">
-              <Link to="/login">Login</Link>
-            </Button>
+            {user ? (
+              <Button asChild variant="outline">
+                <Link to="/app">Go to App</Link>
+              </Button>
+            ) : (
+              <Button asChild variant="outline">
+                <Link to="/login">Login</Link>
+              </Button>
+            )}
           </div>
         </div>
       </nav>

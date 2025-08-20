@@ -14,7 +14,7 @@ const AUTH_ENDPOINTS = {
   LOGIN: '/user/login',
   REGISTER: '/user/register',
   LOGOUT: '/user/logout',
-  ME: '/user/me', // This might need to be implemented in the backend
+  ME: '/user/me',
   GET_ALL_USERS: '/user/get-all',
   GET_USER_BY_ID: (id: string) => `/user/${id}`,
 } as const
@@ -71,11 +71,19 @@ export const useLoginMutation = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: authApi.login,
-    onSuccess: (data) => {
-      // Store the token
-      setAuthToken(data.jwtToken)
+    mutationFn: async (credentials: LoginRequestDTO) => {
+      // First, login to get the token
+      const loginResponse = await authApi.login(credentials)
       
+      // Set the token so subsequent requests work
+      setAuthToken(loginResponse.jwtToken)
+      
+      // Then fetch user data with roles
+      const userData = await authApi.getCurrentUser()
+      
+      return { ...loginResponse, user: userData }
+    },
+    onSuccess: () => {
       // Invalidate and refetch user data
       queryClient.invalidateQueries({ queryKey: authKeys.me() })
     },

@@ -11,6 +11,7 @@ import type {
 // API endpoints
 const FLOOR_ENDPOINTS = {
   GET_ALL: '/floor/get-all',
+  GET_ALL_WITH_DESKS: '/floor/get-all-with-desks',
   GET_BY_ID: (id: number) => `/floor/get/${id}`,
   CREATE: '/floor/create',
   UPDATE: (id: number) => `/floor/${id}/update`,
@@ -31,6 +32,12 @@ export const floorsApi = {
   // Get all floors
   getAll: async (): Promise<FloorResponseDTO[]> => {
     const response = await apiClient.get<FloorResponseDTO[]>(FLOOR_ENDPOINTS.GET_ALL)
+    return response.data
+  },
+
+  // Get all floors with desk counts
+  getAllWithDesks: async (): Promise<FloorResponseDTO[]> => {
+    const response = await apiClient.get<FloorResponseDTO[]>(FLOOR_ENDPOINTS.GET_ALL_WITH_DESKS)
     return response.data
   },
 
@@ -66,6 +73,15 @@ export const useFloorsQuery = (filters?: FloorFilters) => {
     queryKey: floorKeys.list(filters || {}),
     queryFn: floorsApi.getAll,
     staleTime: 5 * 60 * 1000, // 5 minutes (floors don't change often)
+  })
+}
+
+// Get all floors with desk counts
+export const useFloorsWithDesksQuery = (filters?: FloorFilters) => {
+  return useQuery({
+    queryKey: [...floorKeys.list(filters || {}), 'with-desks'],
+    queryFn: floorsApi.getAllWithDesks,
+    staleTime: 2 * 60 * 1000, // 2 minutes (desk counts change more frequently)
   })
 }
 

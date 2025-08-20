@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api'
+import { toLocalISOString } from '@/lib/utils'
 
 import type { 
   DeskResponseDTO,
@@ -33,9 +34,19 @@ export const deskKeys = {
 
 // Desks API functions
 export const desksApi = {
-  // Get all desks
+  // Get all desks with availability status
   getAll: async (): Promise<DeskResponseDTO[]> => {
-    const response = await apiClient.get<DeskResponseDTO[]>(DESK_ENDPOINTS.GET_ALL)
+    // Use the available endpoint with current time to get proper availability status
+    const now = new Date()
+    const endOfDay = new Date(now)
+    endOfDay.setHours(23, 59, 59, 999)
+    
+    const availabilityRequest = {
+      StartTime: toLocalISOString(now),
+      EndTime: toLocalISOString(endOfDay),
+    }
+    
+    const response = await apiClient.post<DeskResponseDTO[]>(DESK_ENDPOINTS.AVAILABLE, availabilityRequest)
     return response.data
   },
 
@@ -45,10 +56,21 @@ export const desksApi = {
     return response.data
   },
 
-  // Get desks by floor ID
+  // Get desks by floor ID with availability status
   getByFloorId: async (floorId: number): Promise<DeskResponseDTO[]> => {
-    const response = await apiClient.get<DeskResponseDTO[]>(DESK_ENDPOINTS.BY_FLOOR(floorId))
-    return response.data
+    // Use the available endpoint with current time to get proper availability status
+    const now = new Date()
+    const endOfDay = new Date(now)
+    endOfDay.setHours(23, 59, 59, 999)
+    
+    const availabilityRequest = {
+      StartTime: toLocalISOString(now),
+      EndTime: toLocalISOString(endOfDay),
+    }
+    
+    const response = await apiClient.post<DeskResponseDTO[]>(DESK_ENDPOINTS.AVAILABLE, availabilityRequest)
+    // Filter to only return desks from the specified floor
+    return response.data.filter(desk => desk.floorId === floorId)
   },
 
   // Get available desks for a time period
@@ -111,7 +133,7 @@ export const useAvailableDesksQuery = (availabilityRequest: DeskAvailabilityRequ
   return useQuery({
     queryKey: deskKeys.available(availabilityRequest),
     queryFn: () => desksApi.getAvailable(availabilityRequest),
-    enabled: enabled && !!availabilityRequest.startTime && !!availabilityRequest.endTime,
+    enabled: enabled && !!availabilityRequest.StartTime && !!availabilityRequest.EndTime,
     staleTime: 30 * 1000, // 30 seconds (availability changes frequently)
   })
 }

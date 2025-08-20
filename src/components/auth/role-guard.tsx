@@ -1,3 +1,4 @@
+import { Navigate } from 'react-router-dom'
 import { useAuthRoles } from '@/features/auth/store'
 
 import type { UserRole } from '@/types/auth'
@@ -12,7 +13,7 @@ interface RoleGuardProps {
 export function RoleGuard({ 
   children, 
   roles, 
-  fallback = <div className="text-center p-8 text-muted-foreground">Access denied. Insufficient permissions.</div>,
+  fallback,
   requireAll = false 
 }: RoleGuardProps) {
   const { hasRole, hasAnyRole } = useAuthRoles()
@@ -22,7 +23,10 @@ export function RoleGuard({
     : hasAnyRole(roles)
 
   if (!hasAccess) {
-    return <>{fallback}</>
+    if (fallback) {
+      return <>{fallback}</>
+    }
+    return <Navigate to="/403" replace />
   }
 
   return <>{children}</>
