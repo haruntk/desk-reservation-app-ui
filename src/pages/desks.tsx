@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Monitor, Search, Filter, Grid, List } from 'lucide-react'
+import { Monitor, Search, Filter, Grid, List, Building2 } from 'lucide-react'
 
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -9,17 +9,18 @@ import { Card, CardContent } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { LoadingSpinner } from '@/components/ui/loading'
 import { DeskCard } from '@/components/desks/desk-card'
+import { FloorPlanView } from '@/components/desks/floor-plan-view'
 import { FloorSelect } from '@/components/reservations/floor-select'
 import { useDesksQuery } from '@/features/desks/api'
 
-type ViewMode = 'grid' | 'list'
+type ViewMode = 'grid' | 'list' | 'floorplan'
 type AvailabilityFilter = 'all' | 'available' | 'reserved'
 
 export function DesksPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [availabilityFilter, setAvailabilityFilter] = useState<AvailabilityFilter>('all')
   const [selectedFloorId, setSelectedFloorId] = useState<number | undefined>()
-  const [viewMode, setViewMode] = useState<ViewMode>('grid')
+  const [viewMode, setViewMode] = useState<ViewMode>('floorplan')
 
   const { data: desks = [], isLoading, error, refetch } = useDesksQuery()
 
@@ -118,6 +119,14 @@ export function DesksPage() {
 
         {/* View Mode Toggle */}
         <div className="flex items-center gap-2">
+          <Button
+            variant={viewMode === 'floorplan' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('floorplan')}
+            aria-label="Floor plan view"
+          >
+            <Building2 className="h-4 w-4" />
+          </Button>
           <Button
             variant={viewMode === 'grid' ? 'default' : 'outline'}
             size="sm"
@@ -227,7 +236,7 @@ export function DesksPage() {
         )}
       </div>
 
-      {/* Desks Grid/List */}
+      {/* Desks Views */}
       {filteredDesks.length === 0 ? (
         <EmptyState
           icon={<Monitor className="h-8 w-8 text-muted-foreground" />}
@@ -244,6 +253,11 @@ export function DesksPage() {
               variant: "outline"
             } : undefined
           }
+        />
+      ) : viewMode === 'floorplan' ? (
+        <FloorPlanView 
+          desks={filteredDesks} 
+          onReservationSuccess={handleReservationSuccess}
         />
       ) : (
         <div className={

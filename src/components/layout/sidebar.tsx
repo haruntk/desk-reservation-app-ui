@@ -83,6 +83,17 @@ export function Sidebar() {
 
   return (
     <aside className="w-64 bg-card border-r border-border">
+      {/* App Logo/Name */}
+      <div className="flex items-center gap-3 p-4 border-b border-border">
+        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground">
+          <Monitor className="h-5 w-5" />
+        </div>
+        <div>
+          <h1 className="text-lg font-semibold text-foreground">DeskSpace</h1>
+          <p className="text-xs text-muted-foreground">Reservation System</p>
+        </div>
+      </div>
+      
       <nav className="flex flex-col space-y-1 p-4">
         {filteredNavigation.map((item) => {
           const isActive = location.pathname === item.href
