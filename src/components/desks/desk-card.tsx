@@ -48,19 +48,40 @@ export function DeskCard({ desk, floorNumber, onReservationSuccess }: DeskCardPr
 
     try {
       await cancelMutation.mutateAsync(myActiveReservation.reservationId)
-      toast.success('Reservation cancelled successfully')
+      toast.success('Rezervasyon başarıyla iptal edildi')
       setShowCancelDialog(false)
       onReservationSuccess?.()
     } catch (error) {
-      toast.error('Failed to cancel reservation')
       console.error('Cancel reservation error:', error)
+      
+      // Provide specific error message based on error type
+      let errorMessage = "Rezervasyon iptal edilirken bir hata oluştu"
+      
+      if (error && typeof error === 'object' && 'message' in error) {
+        const apiError = error as { message: string; status?: number }
+        const message = apiError.message.toLowerCase()
+        
+        if (message.includes('not found') || message.includes('bulunamadı')) {
+          errorMessage = "Rezervasyon bulunamadı. Sayfa yenilendikten sonra tekrar deneyin."
+        } else if (message.includes('already cancelled') || message.includes('zaten iptal')) {
+          errorMessage = "Bu rezervasyon zaten iptal edilmiş."
+        } else if (message.includes('cannot cancel') || message.includes('iptal edilemez')) {
+          errorMessage = "Bu rezervasyon iptal edilemez. Aktif rezervasyonları yalnızca başlangıç zamanından önce iptal edebilirsiniz."
+        } else if (message.includes('unauthorized') || message.includes('yetkisiz')) {
+          errorMessage = "Bu rezervasyonu iptal etme yetkiniz bulunmuyor."
+        } else if (apiError.status === 0) {
+          errorMessage = "Bağlantı hatası. İnternet bağlantınızı kontrol edin ve tekrar deneyin."
+        }
+      }
+      
+      toast.error(errorMessage)
     }
   }
 
   const handleReservationFormSuccess = () => {
     setShowReservationForm(false)
     onReservationSuccess?.()
-    toast.success('Desk reserved successfully!')
+    toast.success('Masa başarıyla rezerve edildi!')
   }
 
   const getStatusBadge = () => {

@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { LogOut, User, ChevronDown } from 'lucide-react'
+import { LogOut, User, ChevronDown, Monitor } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Badge } from '@/components/ui/badge'
-import { ThemeToggle } from '@/components/theme-toggle'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { useAuth } from '@/features/auth/store'
 import { useLogoutMutation } from '@/features/auth'
 import { toast } from 'sonner'
@@ -17,7 +18,11 @@ export function TopBar() {
   const handleLogout = async () => {
     try {
       await logoutMutation.mutateAsync()
-      toast.success('Logged out successfully')
+      // useLogoutMutation onSettled callback handles:
+      // - clearAuthToken()
+      // - queryClient.clear()
+      // - localStorage.removeItem('auth-storage')
+      // - window.location.href = '/login'
     } catch (error) {
       toast.error('Logout failed. Please try again.')
     }
@@ -38,28 +43,49 @@ export function TopBar() {
 
   return (
     <>
-      <header className="flex h-16 items-center justify-between border-b border-border bg-background px-6">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-xl font-semibold">Desk Reservation</h1>
-        </div>
+      <motion.header 
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm"
+      >
+        <div className="flex h-16 items-center justify-between px-6">
+          {/* Logo */}
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center space-x-3"
+          >
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-md">
+              <Monitor className="h-4 w-4 text-primary-foreground" />
+            </div>
+            <span className="font-bold text-xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              DeskSpace
+            </span>
+          </motion.div>
 
-        <div className="flex items-center space-x-4">
-          <ThemeToggle />
-          
-          {/* User menu */}
-          <DropdownMenu>
+          <div className="flex items-center space-x-4">
+            <ThemeToggle variant="compact" />
+            
+            {/* User menu */}
+            <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                className="flex items-center space-x-2 px-3"
-                aria-label={`User menu for ${user?.email || 'current user'}`}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <User className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden sm:inline-block text-sm">
-                  {user?.email?.split('@')[0] || 'User'}
-                </span>
-                <ChevronDown className="h-4 w-4" aria-hidden="true" />
-              </Button>
+                <Button 
+                  variant="ghost" 
+                  className="flex items-center space-x-2 px-3"
+                  aria-label={`User menu for ${user?.email || 'current user'}`}
+                >
+                  <User className="h-4 w-4" aria-hidden="true" />
+                  <span className="hidden sm:inline-block text-sm">
+                    {user?.email?.split('@')[0] || 'User'}
+                  </span>
+                  <ChevronDown className="h-4 w-4" aria-hidden="true" />
+                </Button>
+              </motion.div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <div className="px-2 py-1.5">
@@ -98,8 +124,9 @@ export function TopBar() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
         </div>
-      </header>
+      </motion.header>
 
       {/* Logout Confirmation Dialog */}
       <ConfirmDialog

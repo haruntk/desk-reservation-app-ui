@@ -13,4 +13,6 @@ export { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessa
 export { LoadingSpinner, LoadingPage, TableSkeleton, CardSkeleton, FormSkeleton } from "./loading"
 export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select"
 export { Skeleton } from "./skeleton"
+export { ThemeToggle } from "./theme-toggle"
 export { Toaster } from "./toaster"
+export * from "./variants"

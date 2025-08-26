@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { 
   Monitor, 
   Building2, 
@@ -82,72 +83,122 @@ export function Sidebar() {
   const showAdminSection = filteredAdminNavigation.length > 0
 
   return (
-    <aside className="w-64 bg-card border-r border-border">
+    <motion.aside 
+      initial={{ x: -264 }}
+      animate={{ x: 0 }}
+      transition={{ duration: 0.3 }}
+      className="w-64 bg-card border-r border-border scrollbar-thin overflow-y-auto"
+    >
       {/* App Logo/Name */}
-      <div className="flex items-center gap-3 p-4 border-b border-border">
-        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground">
-          <Monitor className="h-5 w-5" />
-        </div>
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="flex items-center gap-3 p-4 border-b border-border"
+      >
+        <motion.div 
+          whileHover={{ scale: 1.1, rotate: 5 }}
+          className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-md"
+        >
+          <Monitor className="h-4 w-4" />
+        </motion.div>
         <div>
-          <h1 className="text-lg font-semibold text-foreground">DeskSpace</h1>
+          <h1 className="text-lg font-semibold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">DeskSpace</h1>
           <p className="text-xs text-muted-foreground">Reservation System</p>
         </div>
-      </div>
+      </motion.div>
       
       <nav className="flex flex-col space-y-1 p-4">
-        {filteredNavigation.map((item) => {
+        {filteredNavigation.map((item, index) => {
           const isActive = location.pathname === item.href
           
           return (
-            <Link
+            <motion.div
               key={item.name}
-              to={item.href}
-              className={cn(
-                'flex items-center space-x-3 px-3 py-2 text-sm font-medium rounded-md transition-colors',
-                isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-              )}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 + index * 0.05 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <item.icon className="h-5 w-5" />
-              <span>{item.name}</span>
-            </Link>
+              <Link
+                to={item.href}
+                className={cn(
+                  'flex items-center space-x-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 relative',
+                  isActive
+                    ? 'text-primary bg-primary/10'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                )}
+              >
+                <item.icon className="h-5 w-5" />
+                <span>{item.name}</span>
+                {isActive && (
+                  <motion.div
+                    layoutId="sidebar-indicator"
+                    className="absolute inset-0 bg-primary/5 rounded-lg border border-primary/20"
+                    initial={false}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  />
+                )}
+              </Link>
+            </motion.div>
           )
         })}
 
         {/* Admin Section */}
         {showAdminSection && (
           <>
-            <div className="pt-4 pb-2">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="pt-4 pb-2"
+            >
               <div className="flex items-center space-x-2 px-3 py-1">
                 <Settings className="h-4 w-4 text-muted-foreground" />
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                   Administration
                 </span>
               </div>
-            </div>
-            {filteredAdminNavigation.map((item) => {
+            </motion.div>
+            {filteredAdminNavigation.map((item, index) => {
               const isActive = location.pathname === item.href
               
               return (
-                <Link
+                <motion.div
                   key={item.name}
-                  to={item.href}
-                  className={cn(
-                    'flex items-center space-x-3 px-3 py-2 text-sm font-medium rounded-md transition-colors',
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                  )}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 + index * 0.05 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.name}</span>
-                </Link>
+                  <Link
+                    to={item.href}
+                    className={cn(
+                      'flex items-center space-x-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 relative',
+                      isActive
+                        ? 'text-primary bg-primary/10'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                    )}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.name}</span>
+                    {isActive && (
+                      <motion.div
+                        layoutId="admin-sidebar-indicator"
+                        className="absolute inset-0 bg-primary/5 rounded-lg border border-primary/20"
+                        initial={false}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      />
+                    )}
+                  </Link>
+                </motion.div>
               )
             })}
           </>
         )}
       </nav>
-    </aside>
+    </motion.aside>
   )
 }

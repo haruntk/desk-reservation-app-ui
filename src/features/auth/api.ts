@@ -110,6 +110,9 @@ export const useLogoutMutation = () => {
       clearAuthToken()
       queryClient.clear() // Clear all cached data
       
+      // Clear localStorage auth data
+      localStorage.removeItem('auth-storage')
+      
       // Redirect to login page
       window.location.href = '/login'
     },

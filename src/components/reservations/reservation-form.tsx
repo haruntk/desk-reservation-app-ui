@@ -14,6 +14,7 @@ import { createReservationRequestSchema, type CreateReservationRequestData } fro
 import { toLocalISOString } from "@/lib/utils"
 import { useCreateReservationMutation, useUpdateReservationMutation } from "@/features/reservations/api"
 import type { ReservationResponseDTO } from "@/types/reservation"
+import type { ApiError } from "@/lib/api"
 
 
 interface ReservationFormProps {
@@ -52,29 +53,75 @@ export function ReservationForm({ reservation, onSuccess, onCancel, defaultDeskI
     EndTime: toLocalISOString(endTime),
   } : undefined
 
+  const getErrorMessage = (error: unknown, isEditing: boolean): string => {
+    // Check if it's an API error with specific message
+    if (error && typeof error === 'object' && 'message' in error) {
+      const apiError = error as ApiError
+      const message = apiError.message.toLowerCase()
+      
+      // Check for specific reservation conflict patterns
+      if (message.includes('overlap') || message.includes('conflict') || 
+          message.includes('already reserved') || message.includes('not available') ||
+          message.includes('çakış') || message.includes('dolu') || 
+          message.includes('mevcut rezervasyon')) {
+        
+        const action = isEditing ? 'güncellenemiyor' : 'oluşturulamıyor'
+        return `Rezervasyon ${action}: Seçilen zaman diliminde masa başka bir kullanıcı tarafından rezerve edilmiş. Lütfen farklı bir zaman dilimi veya masa seçin.`
+      }
+      
+      // Check for other specific error patterns
+      if (message.includes('invalid time') || message.includes('time range') ||
+          message.includes('geçersiz zaman') || message.includes('zaman aralığı')) {
+        return `Geçersiz zaman aralığı. Bitiş zamanı başlangıç zamanından sonra olmalı ve geçmiş bir tarih seçilemez.`
+      }
+      
+      if (message.includes('desk not found') || message.includes('masa bulunamadı')) {
+        return `Seçilen masa bulunamadı. Lütfen geçerli bir masa seçin.`
+      }
+      
+      if (message.includes('unauthorized') || message.includes('yetkisiz')) {
+        return `Bu işlem için yetkiniz bulunmuyor. Lütfen giriş yapın veya yöneticinizle iletişime geçin.`
+      }
+      
+      // Return the original error message if it's user-friendly
+      if (apiError.message && apiError.message.length > 0) {
+        return apiError.message
+      }
+    }
+    
+    // Fallback to generic error messages
+    return isEditing 
+      ? "Rezervasyon güncellenirken bir hata oluştu. Lütfen tekrar deneyin."
+      : "Rezervasyon oluşturulurken bir hata oluştu. Lütfen tekrar deneyin."
+  }
+
   const onSubmit = async (data: CreateReservationRequestData) => {
     try {
-          const requestData = {
-      ...data,
-      startTime: toLocalISOString(data.startTime),
-      endTime: toLocalISOString(data.endTime),
-    }
+      const requestData = {
+        ...data,
+        startTime: toLocalISOString(data.startTime),
+        endTime: toLocalISOString(data.endTime),
+      }
+      
       if (isEditing && reservation) {
         await updateMutation.mutateAsync({
           id: reservation.reservationId,
           data: requestData,
         })
-        toast.success("Reservation updated successfully!")
+        toast.success("Rezervasyon başarıyla güncellendi!")
       } else {
         await createMutation.mutateAsync(requestData)
-        toast.success("Reservation created successfully!")
+        toast.success("Rezervasyon başarıyla oluşturuldu!")
       }
 
       onSuccess?.()
       form.reset()
     } catch (error) {
-      toast.error(isEditing ? "Failed to update reservation" : "Failed to create reservation")
       console.error("Reservation error:", error)
+      
+      // Show detailed error message with toast
+      const errorMessage = getErrorMessage(error, isEditing)
+      toast.error(errorMessage)
     }
   }
 

@@ -20,6 +20,8 @@ interface FloorPlanViewProps {
 
 
 
+
+
 export function FloorPlanView({ desks, onReservationSuccess, onDeskSelect }: FloorPlanViewProps) {
   const [selectedDesk, setSelectedDesk] = useState<DeskResponseDTO | null>(null)
   const [showReservationForm, setShowReservationForm] = useState(false)
@@ -205,7 +207,7 @@ export function FloorPlanView({ desks, onReservationSuccess, onDeskSelect }: Flo
                           <div className="flex items-center gap-2">
                             <User className="h-4 w-4 text-muted-foreground" />
                             <span className="font-medium">
-                              {reservation.userId === user?.id ? 'You' : `User ${reservation.userId}`}
+                              {reservation.userId === user?.id ? 'You' : 'User'}
                             </span>
                           </div>
                           <Badge 
