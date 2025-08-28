@@ -4,8 +4,7 @@ import { AppLayout } from "@/components/layout/app-layout"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { AdminGuard } from "@/components/auth/role-guard"
 import { LandingPage } from "@/pages/landing"
-import { LoginPage } from "@/pages/login"
-import { RegisterPage } from "@/pages/register"
+import { WindowsLoginPage } from "@/pages/windows-login"
 import { DashboardPage } from "@/pages/dashboard"
 import { ReservationsPage } from "@/pages/reservations"
 import { DesksPage } from "@/pages/desks"
@@ -29,11 +28,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "login",
-        element: <LoginPage />,
-      },
-      {
-        path: "register",
-        element: <RegisterPage />,
+        element: <WindowsLoginPage />,
       },
       {
         path: "app",

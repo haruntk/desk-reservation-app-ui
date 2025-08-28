@@ -103,8 +103,8 @@ export function Sidebar() {
           <Monitor className="h-4 w-4" />
         </motion.div>
         <div>
-          <h1 className="text-lg font-semibold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">DeskSpace</h1>
-          <p className="text-xs text-muted-foreground">Reservation System</p>
+          <h1 className="text-lg font-semibold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">Desk Reservation</h1>
+          <p className="text-xs text-muted-foreground">System</p>
         </div>
       </motion.div>
       

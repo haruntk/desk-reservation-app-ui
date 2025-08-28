@@ -60,7 +60,7 @@ export function TopBar() {
               <Monitor className="h-4 w-4 text-primary-foreground" />
             </div>
             <span className="font-bold text-xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-              DeskSpace
+              Desk Reservation
             </span>
           </motion.div>
 

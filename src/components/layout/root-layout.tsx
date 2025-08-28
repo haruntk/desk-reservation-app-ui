@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Outlet, Link, useLocation } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
-import { Monitor, Menu, X, Home, Calendar, MapPin, Users } from "lucide-react"
+import { Monitor, Menu, X, Home, Calendar, MapPin } from "lucide-react"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/features/auth/store"
@@ -29,18 +29,13 @@ const navItems: NavItem[] = [
     href: "/app/desks",
     icon: <MapPin className="h-4 w-4" />,
   },
-  {
-    label: "Admin",
-    href: "/app/admin",
-    icon: <Users className="h-4 w-4" />,
-  },
 ]
 
 export function RootLayout() {
   const [isOpen, setIsOpen] = React.useState(false)
   const location = useLocation()
   const { user } = useAuth()
-  const isAuthPage = ['/login', '/register'].includes(location.pathname)
+  const isAuthPage = ['/login'].includes(location.pathname)
 
   // Close mobile menu when route changes
   React.useEffect(() => {
@@ -71,7 +66,7 @@ export function RootLayout() {
                   <Monitor className="h-4 w-4 text-primary-foreground" />
                 </div>
                 <span className="font-bold text-xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                  DeskSpace
+                  Desk Reservation
                 </span>
               </Link>
             </motion.div>
@@ -132,11 +127,7 @@ export function RootLayout() {
                       <Link to="/login">Login</Link>
                     </Button>
                   </motion.div>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button asChild variant="outline">
-                      <Link to="/register">Sign Up</Link>
-                    </Button>
-                  </motion.div>
+
                 </div>
               )}
             </div>

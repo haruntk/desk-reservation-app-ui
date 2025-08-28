@@ -1,18 +1,17 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { setAuthToken, clearAuthToken } from '@/lib/api'
+import { clearAuthData } from '@/lib/api'
 
 import type { UserDTO, UserRole } from '@/types/auth'
 
 interface AuthState {
-  // Core auth state
-  accessToken: string | null
+  // Core auth state (no token needed for Windows Auth)
   user: UserDTO | null
   isAuthenticated: boolean
   isLoading: boolean
 
   // Actions
-  login: (token: string, user: UserDTO) => void
+  login: (user: UserDTO) => void
   logout: () => void
   setUser: (user: UserDTO) => void
   setLoading: (loading: boolean) => void
@@ -29,16 +28,13 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       // Initial state
-      accessToken: null,
       user: null,
       isAuthenticated: false,
       isLoading: false,
 
       // Actions
-      login: (token: string, user: UserDTO) => {
-        setAuthToken(token)
+      login: (user: UserDTO) => {
         set({
-          accessToken: token,
           user,
           isAuthenticated: true,
           isLoading: false,
@@ -46,9 +42,8 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        clearAuthToken()
+        clearAuthData()
         set({
-          accessToken: null,
           user: null,
           isAuthenticated: false,
           isLoading: false,
@@ -92,18 +87,11 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
-      // Only persist user data and token, not loading states
+      // Only persist user data, not loading states (no token for Windows Auth)
       partialize: (state) => ({
-        accessToken: state.accessToken,
         user: state.user,
         isAuthenticated: state.isAuthenticated,
       }),
-      // On rehydration, restore token to axios
-      onRehydrateStorage: () => (state) => {
-        if (state?.accessToken) {
-          setAuthToken(state.accessToken)
-        }
-      },
     }
   )
 )
@@ -115,7 +103,6 @@ export const useAuth = () => {
     user: store.user,
     isAuthenticated: store.isAuthenticated,
     isLoading: store.isLoading,
-    accessToken: store.accessToken,
     login: store.login,
     logout: store.logout,
     setUser: store.setUser,

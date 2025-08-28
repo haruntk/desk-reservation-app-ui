@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { apiClient, setAuthToken, clearAuthToken } from '@/lib/api'
+import { apiClient, clearAuthData } from '@/lib/api'
 
 import type { 
   LoginRequestDTO, 
@@ -9,12 +9,11 @@ import type {
   UserDTO 
 } from '@/types/auth'
 
-// API endpoints
+// API endpoints for Windows Authentication
 const AUTH_ENDPOINTS = {
-  LOGIN: '/user/login',
-  REGISTER: '/user/register',
-  LOGOUT: '/user/logout',
-  ME: '/user/me',
+  LOGIN: '/auth/login', // Windows Auth login endpoint
+  LOGOUT: '/auth/logout', // Windows Auth logout endpoint
+  ME: '/user/me', // Get current user info
   GET_ALL_USERS: '/user/get-all',
   GET_USER_BY_ID: (id: string) => `/user/${id}`,
 } as const
@@ -27,17 +26,11 @@ export const authKeys = {
   user: (id: string) => [...authKeys.all, 'user', id] as const,
 }
 
-// Auth API functions
+// Auth API functions for Windows Authentication
 export const authApi = {
-  // Login user
-  login: async (credentials: LoginRequestDTO): Promise<LoginResponseDTO> => {
-    const response = await apiClient.post<LoginResponseDTO>(AUTH_ENDPOINTS.LOGIN, credentials)
-    return response.data
-  },
-
-  // Register user
-  register: async (userData: RegisterRequestDTO): Promise<RegisterResponseDTO> => {
-    const response = await apiClient.post<RegisterResponseDTO>(AUTH_ENDPOINTS.REGISTER, userData)
+  // Windows Authentication login - typically a GET request to trigger auth
+  login: async (): Promise<UserDTO> => {
+    const response = await apiClient.get<UserDTO>(AUTH_ENDPOINTS.LOGIN)
     return response.data
   },
 
@@ -71,34 +64,20 @@ export const useLoginMutation = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (credentials: LoginRequestDTO) => {
-      // First, login to get the token
-      const loginResponse = await authApi.login(credentials)
-      
-      // Set the token so subsequent requests work
-      setAuthToken(loginResponse.jwtToken)
-      
-      // Then fetch user data with roles
-      const userData = await authApi.getCurrentUser()
-      
-      return { ...loginResponse, user: userData }
+    mutationFn: async () => {
+      // Windows Authentication - just call the login endpoint
+      const userData = await authApi.login()
+      return userData
     },
     onSuccess: () => {
       // Invalidate and refetch user data
       queryClient.invalidateQueries({ queryKey: authKeys.me() })
     },
-    onError: () => {
-      // Clear any existing token on login error
-      clearAuthToken()
-    },
   })
 }
 
-export const useRegisterMutation = () => {
-  return useMutation({
-    mutationFn: authApi.register,
-  })
-}
+// Note: Registration might not be needed with Windows Authentication
+// as users are typically managed through Active Directory
 
 export const useLogoutMutation = () => {
   const queryClient = useQueryClient()
@@ -106,12 +85,9 @@ export const useLogoutMutation = () => {
   return useMutation({
     mutationFn: authApi.logout,
     onSettled: () => {
-      // Clear token and user data
-      clearAuthToken()
+      // Clear any localStorage auth data
+      clearAuthData()
       queryClient.clear() // Clear all cached data
-      
-      // Clear localStorage auth data
-      localStorage.removeItem('auth-storage')
       
       // Redirect to login page
       window.location.href = '/login'
@@ -119,12 +95,12 @@ export const useLogoutMutation = () => {
   })
 }
 
-// Query for current user
+// Query for current user (Windows Authentication)
 export const useCurrentUser = () => {
   return useQuery({
     queryKey: authKeys.me(),
     queryFn: authApi.getCurrentUser,
-    enabled: !!localStorage.getItem('auth-token'), // Only fetch if token exists
+    enabled: false, // Disabled - we'll use manual auth check instead
     retry: false, // Don't retry on 401
     staleTime: 5 * 60 * 1000, // 5 minutes
   })

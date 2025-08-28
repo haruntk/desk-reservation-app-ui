@@ -22,22 +22,21 @@ export interface ApiResponse<T = unknown> {
   message?: string
 }
 
-// Create axios instance
+// Create axios instance for Windows Authentication
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'https://localhost:7051/api',
   headers: {
     'Content-Type': 'application/json',
   },
   timeout: 10000,
+  withCredentials: true, // Send cookies with requests for Windows Auth
 })
 
-// Request interceptor to add auth token
+// Request interceptor for Windows Authentication
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('auth-token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
+    // Windows Authentication uses cookies automatically
+    // No need to add Authorization header
     return config
   },
   (error) => {
@@ -54,9 +53,9 @@ apiClient.interceptors.response.use(
   (error: AxiosError) => {
     const normalizedError = normalizeError(error)
     
-    // Handle 401 errors globally
+    // Handle 401 errors globally for Windows Auth
     if (normalizedError.status === 401) {
-      localStorage.removeItem('auth-token')
+      // For Windows Auth, redirect to login or show auth dialog
       // Only redirect if not already on login page
       if (window.location.pathname !== '/login') {
         window.location.href = '/login'
@@ -113,17 +112,19 @@ export function normalizeError(error: unknown): ApiError {
   }
 }
 
-// Helper function to get auth token
-export function getAuthToken(): string | null {
-  return localStorage.getItem('auth-token')
-}
+// Helper functions for Windows Authentication
+// Note: Windows Auth uses HTTP-only cookies, so no token management needed
 
-// Helper function to set auth token
-export function setAuthToken(token: string): void {
-  localStorage.setItem('auth-token', token)
-}
-
-// Helper function to clear auth token
-export function clearAuthToken(): void {
+// Clear any remaining localStorage data (legacy cleanup)
+export function clearAuthData(): void {
   localStorage.removeItem('auth-token')
+  localStorage.removeItem('auth-storage')
+}
+
+// Check if user is authenticated (will be handled by API calls)
+export function checkAuthentication(): Promise<boolean> {
+  // This will be implemented based on backend /me endpoint
+  return apiClient.get('/user/me')
+    .then(() => true)
+    .catch(() => false)
 }
